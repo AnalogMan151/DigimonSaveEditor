@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Author: AnalogMan
-# Modified Date: 2019-11-02
-# Purpose: Applies varies edits to a Digimon Story Cyber Sleuth Complete Edition for Nintento Switch save file
+# Modified Date: 2019-11-03
+# Purpose: Applies various edits to a Digimon Story Cyber Sleuth Complete Edition for Nintento Switch save file
 # Usage: DigmonSaveEditor.py
 
 from sys import version_info, argv
@@ -69,7 +69,67 @@ def addToInventory(filepath, inv_addr, item_list, item_type, item_qty):
     except:
         return 1
 
-def Write32(filepath, addr, value):
+def overwriteInventory(filepath, inv_addr, item_list, item_type, item_qty):
+    try:
+        # Open file
+        with open(filepath, 'rb+') as f:
+            f.seek(inv_addr)
+            item_slot = 0
+            index = 0
+            while index < len(item_list) and item_slot < 2000:
+                occupied = f.read(4)
+                if int.from_bytes(occupied, 'little') & 1 == 1:
+                    f.seek(4,1)
+                    current_item_type = f.read(4)
+                    # If a key item, skip to next item slot
+                    if int.from_bytes(current_item_type, 'little') == 3:
+                        f.seek(12,1)
+                        item_slot += 1
+                        continue
+                    else:
+                        f.seek(-8,1)
+                f.seek(-4,1)
+                # Write item and move to next slot
+                f.write(0x3F800001.to_bytes(4, 'little'))
+                f.seek(4,1)
+                f.write(int(item_type).to_bytes(4, 'little'))
+                f.write(item_list[index].to_bytes(4, 'little'))
+                f.write(item_list[index].to_bytes(4, 'little'))
+                f.write(int(item_qty).to_bytes(4, 'little'))
+                index += 1
+                item_slot += 1
+            return f.tell()
+    except:
+        raise
+
+def allItems(filepath, inv_addr):
+    consumables = list(range(1, 34)) + list(range(50, 59)) + list(range(60, 68)) + list(range(70, 80)) + list(range(90, 92)) \
+                    + list(range(100, 107)) + list(range(110, 128)) + list(range(200, 231))
+    equipment = list(range(301, 404))
+    farm = list(range(501,510)) + list(range(520, 540))
+    medals = list(range(1001,1701))
+    accessories = [10101, 12401, 10201, 12501, 10301, 10302, 12601, 
+                10401, 10501, 10502, 12701, 12702, 12801, 
+                12901, 13001, 10701, 10801, 10901, 10902, 
+                13101, 13102, 13201, 11001, 11101, 13301, 
+                13401, 11201, 11301, 13501, 11401, 11402, 
+                11403, 13601, 11501, 11601, 13701, 13801, 
+                13901, 11701, 11702, 11703, 14001, 14101, 
+                11801, 11802, 14201, 11901, 12001, 12002, 
+                12003, 14301, 12101, 12102, 12103, 14401, 
+                14402, 14501, 12201, 12301, 12302, 12303]
+    
+    try:
+        offset = overwriteInventory(filepath, inv_addr, consumables, USABLE_ITEM, 95)
+        offset = overwriteInventory(filepath, offset, equipment, EQUIP_ITEM, 95)
+        offset = overwriteInventory(filepath, offset, farm, FARM_ITEM, 95)
+        offset = overwriteInventory(filepath, offset, medals, MEDAL_ITEM, 1)
+        overwriteInventory(filepath, offset, accessories, ACCESSORY_ITEM, 95)
+        return 0
+    except:
+        return 1
+
+def write32(filepath, addr, value):
     try:
         with open(filepath, 'rb+') as f:
             f.seek(addr)
@@ -107,9 +167,10 @@ def main():
         '6)  Add 50x of all Digimon Accessories to inventory     (61 inventory slots)\n'
         '7)  Complete the Field Guide                            (Affects both games)\n'
         '8)  200% Scan all Digimon                          (Only discovered Digimon)\n'
-        '9)  Max Yen\n'
-        '10) Max Party Memory\n'
-        '11) 100 Points short of Max Rank\n'
+        '9)  Add 95x of all items                                (Excludes Key Items)\n'
+        '10) Max Yen\n'
+        '11) Max Party Memory\n'
+        '12) 100 Points short of Max Rank\n'
         ': ', end='')
     try:
         cheat = int(input())
@@ -128,7 +189,7 @@ def main():
     if game == 1 or game == 3:
         print('Executing cheat for Cyber Sleuth...')
         if cheat == 1:
-            medals = (range(1001,1701))
+            medals = list(range(1001,1701))
             ret = addToInventory(filepath, CS_Inv_Addr, medals, MEDAL_ITEM, 1)
         elif cheat == 2:
             item = [214]
@@ -141,7 +202,7 @@ def main():
             items = [112, 115, 118, 121, 124, 127]
             ret = addToInventory(filepath, CS_Inv_Addr, items, USABLE_ITEM, 99)
         elif cheat == 5:
-            equipment = range(395, 401)
+            equipment = list(range(395, 401))
             ret = addToInventory(filepath, CS_Inv_Addr, equipment, EQUIP_ITEM, 99)
         elif cheat == 6:
             accessories = [10101, 12401, 10201, 12501, 10301, 10302, 12601, 
@@ -176,32 +237,34 @@ def main():
             except:
                 ret = 1
         elif cheat == 9:
-            ret = Write32(filepath, CS_Money_Addr, 9999999)
+            ret = allItems(filepath, CS_Inv_Addr)
         elif cheat == 10:
-            ret = Write32(filepath, CS_Party_Mem_Addr, 255)
+            ret = write32(filepath, CS_Money_Addr, 9999999)
         elif cheat == 11:
-            ret = Write32(filepath, CS_Rank_Addr, 19)
-            ret = Write32(filepath, CS_Points_Addr, 49900)
+            ret = write32(filepath, CS_Party_Mem_Addr, 255)
+        elif cheat == 12:
+            ret = write32(filepath, CS_Rank_Addr, 19)
+            ret = write32(filepath, CS_Points_Addr, 49900)
         else:
             print('Invalid cheat choice.\n')
 
     if game == 2 or game == 3:
         print('Executing cheat for Hacker\'s Memory...')
         if cheat == 1:
-            medals = (range(1001,1701))
+            medals = list(range(1001,1701))
             ret = addToInventory(filepath, HM_Inv_Addr, medals, MEDAL_ITEM, 1)
         elif cheat == 2:
             item = [214]
             for _ in range(5):
                 ret = addToInventory(filepath, HM_Inv_Addr, item, USABLE_ITEM, 99)
         elif cheat == 3:
-            items = range(202, 209)
+            items = list(range(202, 209))
             ret = addToInventory(filepath, HM_Inv_Addr, items, USABLE_ITEM, 99)
         elif cheat == 4:
             items = [112, 115, 118, 121, 124, 127]
             ret = addToInventory(filepath, HM_Inv_Addr, items, USABLE_ITEM, 99)
         elif cheat == 5:
-            equipment = range(395, 401)
+            equipment = list(range(395, 401))
             ret = addToInventory(filepath, HM_Inv_Addr, equipment, EQUIP_ITEM, 99)
         elif cheat == 6:
             accessories = [10101, 12401, 10201, 12501, 10301, 10302, 12601, 
@@ -236,12 +299,14 @@ def main():
             except:
                 ret = 1
         elif cheat == 9:
-            ret = Write32(filepath, HM_Money_Addr, 9999999)
+            ret = allItems(filepath, HM_Inv_Addr)
         elif cheat == 10:
-            ret = Write32(filepath, HM_Party_Mem_Addr, 255)
+            ret = write32(filepath, HM_Money_Addr, 9999999)
         elif cheat == 11:
-            ret = Write32(filepath, HM_Rank_Addr, 19)
-            ret = Write32(filepath, HM_Points_Addr, 49900)
+            ret = write32(filepath, HM_Party_Mem_Addr, 255)
+        elif cheat == 12:
+            ret = write32(filepath, HM_Rank_Addr, 19)
+            ret = write32(filepath, HM_Points_Addr, 49900)
         else:
             print('Invalid cheat choice.\n')
     
@@ -278,4 +343,3 @@ if __name__ == "__main__":
 #     #Cyber Sleuth
 #     f.seek(0x1958)
 #     f.write(data)
-
