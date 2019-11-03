@@ -4,7 +4,7 @@
 # Purpose: Applies varies edits to a Digimon Story Cyber Sleuth Complete Edition for Nintento Switch save file
 # Usage: DigmonSaveEditor.py
 
-from sys import version_info
+from sys import version_info, argv
 if version_info <= (3,2,0):
     print('\nPython version 3.2.0+ needed to run this script.')
     exit(1)
@@ -81,8 +81,11 @@ def Write32(filepath, addr, value):
 def main():
     print('\n\n==== Digimon Story Cyber Sleuth: Complete Edition Save Editor ====\n')
     ret = 0
-    print('Path to save file (0000.bin, 0001.bin, etc): ', end='')
-    filepath = input()
+    if len(argv) > 1:
+        filepath = argv[1]
+    else:
+        print('Path to save file (0000.bin, 0001.bin, etc): ', end='')
+        filepath = input()
     print('Choose game to alter\n\n'
         '1) Cyber Sleuth\n'
         '2) Hacker\'s Memory\n'
