@@ -14,7 +14,7 @@ from shutil import copy2
 
 CS_Inv_Addr = 0x3EB30
 HM_Inv_Addr = 0xA02D0
-USABLE_ITEM = 0; EQUIP_ITEM = 1; FARM_ITEM = 2; KEY_TEM = 3; MEDAL_ITEM = 4; ACCESSORY_ITEM = 5
+USABLE_ITEM = 0; EQUIP_ITEM = 1; FARM_ITEM = 2; KEY_ITEM = 3; MEDAL_ITEM = 4; ACCESSORY_ITEM = 5
 
 CS_DigiConvert_Addr = 0xB010
 HM_DigiConvert_Addr = 0x6C7B0
@@ -30,6 +30,8 @@ HM_Rank_Addr = 0xAD160
 
 CS_Points_Addr = 0x4B9BC
 HM_Points_Addr = 0xAD15C
+
+CYBER_SLEUTH = 1; HACKERS_MEMORY = 2
 
 def addToInventory(filepath, inv_addr, item_list, item_type, item_qty):
     try:
@@ -82,7 +84,7 @@ def overwriteInventory(filepath, inv_addr, item_list, item_type, item_qty):
                     f.seek(4,1)
                     current_item_type = f.read(4)
                     # If a key item, skip to next item slot
-                    if int.from_bytes(current_item_type, 'little') == 3:
+                    if int.from_bytes(current_item_type, 'little') == KEY_ITEM:
                         f.seek(12,1)
                         item_slot += 1
                         continue
@@ -154,10 +156,11 @@ def main():
     except:
         print('Please input a number.\n\n')
         return 1
-    if game not in [1, 2, 3]:
+
+    if game not in [CYBER_SLEUTH, HACKERS_MEMORY, CYBER_SLEUTH + HACKERS_MEMORY]:
         print('\n\nInvalid game choice\n')
-        input('Press ENTER to quit')
         return 1
+
     try:
         cheat = int(input('\n\nChoose a modification\n'
         'Note: With inventory cheats it\'s best to sell off existing items to\n'
@@ -177,7 +180,6 @@ def main():
         ': '))
     except:
         print('Please input a number.\n\n')
-        input('Press ENTER to quit')
         return 1
 
     print('\n\nBacking up save file...')
@@ -185,9 +187,9 @@ def main():
         copy2(filepath, filepath+'.bak')
     except:
         print('Could not make backup! Ensure file exists and directory is writable.\n')
-        input('Press ENTER to quit')
         return 1
-    if game == 1 or game == 3:
+        
+    if game == CYBER_SLEUTH or game == (CYBER_SLEUTH + HACKERS_MEMORY):
         print('Executing cheat for Cyber Sleuth...')
         if cheat == 1:
             medals = list(range(1001,1701))
@@ -248,10 +250,9 @@ def main():
             ret = write32(filepath, CS_Points_Addr, 49900)
         else:
             print('Invalid cheat choice.\n')
-            input('Press ENTER to quit')
             return 1
 
-    if game == 2 or game == 3:
+    if game == HACKERS_MEMORY or game == (CYBER_SLEUTH + HACKERS_MEMORY):
         print('Executing cheat for Hacker\'s Memory...')
         if cheat == 1:
             medals = list(range(1001,1701))
@@ -312,7 +313,6 @@ def main():
             ret = write32(filepath, HM_Points_Addr, 49900)
         else:
             print('Invalid cheat choice.\n')
-            input('Press ENTER to quit')
             return 1
     
     if ret == 0:
@@ -330,22 +330,10 @@ def main():
             print('Backup restored successfully.\n')
         except:
             print('Could not restore backup file. Please manually rename backup file.\n')
-    input('Press ENTER to quit')
+
     return ret
 
 if __name__ == "__main__":
-    exit(main())   
-
-# # All Medals Obtained (Unconfirmed)
-# with open('0000.bin', 'rb+') as f:
-#     data = b'\xFE\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
-#             b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
-#             b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
-#             b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
-#             b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
-#             b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
-#             b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF'\
-#             b'\xFF\xFF\xFF\x1F'
-#     #Cyber Sleuth
-#     f.seek(0x1958)
-#     f.write(data)
+    ret = main()
+    input('Press ENTER to quit')
+    exit(ret)
