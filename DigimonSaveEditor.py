@@ -2,7 +2,7 @@
 # Author: AnalogMan
 # Modified Date: 2019-11-03
 # Purpose: Applies various edits to a Digimon Story Cyber Sleuth Complete Edition for Nintento Switch save file
-# Usage: DigmonSaveEditor.py
+# Usage: DigmonSaveEditor.py [/path/to/save/file.bin]
 
 from sys import version_info, argv
 if version_info <= (3,2,0):
@@ -144,19 +144,21 @@ def main():
     if len(argv) > 1:
         filepath = argv[1]
     else:
-        print('Path to save file (0000.bin, 0001.bin, etc): ', end='')
-        filepath = input()
-    print('Choose game to alter\n\n'
+        filepath = input('Path to save file (0000.bin, 0001.bin, etc): ')
+    try:
+        game = int(input('Choose game to alter\n\n'
         '1) Cyber Sleuth\n'
         '2) Hacker\'s Memory\n'
         '3) Both\n'
-        ': ', end='')
-    try:
-        game = int(input())
+        ': '))
     except:
         print('Please input a number.\n\n')
         return 1
-    print('\n\nChoose a modification\n'
+    if game not in [1, 2, 3]:
+        print('\n\nInvalid game choice\n')
+        return 1
+    try:
+        cheat = int(input('\n\nChoose a modification\n'
         'Note: With inventory cheats it\'s best to sell off existing items to\n'
         '      prevent duplicate entries\n\n'
         '1)  Add all medals to inventory                        (700 inventory slots)\n'
@@ -171,15 +173,11 @@ def main():
         '10) Max Yen\n'
         '11) Max Party Memory\n'
         '12) 100 Points short of Max Rank\n'
-        ': ', end='')
-    try:
-        cheat = int(input())
+        ': '))
     except:
         print('Please input a number.\n\n')
         return 1
 
-    if game not in [1, 2, 3]:
-        print('\n\nInvalid game choice\n')
     print('\n\nBacking up save file...')
     try:
         copy2(filepath, filepath+'.bak')
@@ -325,6 +323,7 @@ def main():
             print('Backup restored successfully.\n')
         except:
             print('Could not restore backup file. Please manually rename backup file.\n')
+    input('Press ENTER to quit')
     return ret
 
 if __name__ == "__main__":
