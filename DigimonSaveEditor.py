@@ -2,7 +2,7 @@
 # Author: AnalogMan
 # Modified Date: 2019-11-03
 # Purpose: Applies various edits to a Digimon Story Cyber Sleuth Complete Edition for Nintento Switch save file
-# Usage: DigmonSaveEditor.py [/path/to/save/file.bin]
+# Usage: DigmonSaveEditor.py
 
 from sys import version_info, argv
 if version_info <= (3,2,0):
@@ -156,6 +156,7 @@ def main():
         return 1
     if game not in [1, 2, 3]:
         print('\n\nInvalid game choice\n')
+        input('Press ENTER to quit')
         return 1
     try:
         cheat = int(input('\n\nChoose a modification\n'
@@ -176,6 +177,7 @@ def main():
         ': '))
     except:
         print('Please input a number.\n\n')
+        input('Press ENTER to quit')
         return 1
 
     print('\n\nBacking up save file...')
@@ -183,6 +185,7 @@ def main():
         copy2(filepath, filepath+'.bak')
     except:
         print('Could not make backup! Ensure file exists and directory is writable.\n')
+        input('Press ENTER to quit')
         return 1
     if game == 1 or game == 3:
         print('Executing cheat for Cyber Sleuth...')
@@ -245,6 +248,8 @@ def main():
             ret = write32(filepath, CS_Points_Addr, 49900)
         else:
             print('Invalid cheat choice.\n')
+            input('Press ENTER to quit')
+            return 1
 
     if game == 2 or game == 3:
         print('Executing cheat for Hacker\'s Memory...')
@@ -307,6 +312,8 @@ def main():
             ret = write32(filepath, HM_Points_Addr, 49900)
         else:
             print('Invalid cheat choice.\n')
+            input('Press ENTER to quit')
+            return 1
     
     if ret == 0:
         print('Clearing backup...')
