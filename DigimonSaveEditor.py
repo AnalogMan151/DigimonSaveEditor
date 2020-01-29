@@ -244,11 +244,13 @@ def main():
             for _ in range(351):
                 offset += 4
                 ret = write32(filepath, offset, 3)
+                offset += 4
         elif cheat == 8:
             offset = CS_DigiConvert_Addr
             for _ in range(346):
                 offset += 2
-                write16(filepath, offset, 200)
+                ret = write16(filepath, offset, 200)
+                offset += 2
         elif cheat == 9:
             ret = allItems(filepath, CS_Inv_Addr)
         elif cheat == 10:
@@ -285,11 +287,13 @@ def main():
             for _ in range(351):
                 offset += 4
                 ret = write32(filepath, offset, 3)
+                offset += 4
         elif cheat == 8:
             offset = HM_DigiConvert_Addr
             for _ in range(346):
                 offset += 2
-                write16(filepath, offset, 200)
+                ret = write16(filepath, offset, 200)
+                offset += 2
         elif cheat == 9:
             ret = allItems(filepath, HM_Inv_Addr)
         elif cheat == 10:
